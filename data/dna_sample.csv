@@ -1,0 +1,5 @@
+date,lat,lon,species,evidence_score
+2025-08-01,10.0,85.0,Tuna,0.9
+2025-08-02,10.0,85.0,NoDetect,0.0
+2025-08-03,10.0,85.0,Tuna,0.8
+
