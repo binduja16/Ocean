@@ -1,27 +1,19 @@
+# llm_api.py
 import os
 import openai
 
-from dotenv import load_dotenv
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
-# Load variables from .env file
-load_dotenv()
-
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-
-# Now use OPENAI_API_KEY in your code safely
-
-
-def ask_ai(query: str):
-    """Return AI answer to any free-text question."""
+def ask_ai(query):
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",  # or "gpt-4" if you have access
-            messages=[
-                {"role": "system", "content": "You are an expert oceanic fishing assistant."},
-                {"role": "user", "content": query}
-            ],
-            max_tokens=200
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": query}],
+            max_tokens=150
         )
-        return response.choices[0].message.content
-    except Exception as e:
-        return f"Error: {str(e)}"
+        answer = response['choices'][0]['message']['content']
+        return answer
+    except openai.error.OpenAIError as e:
+        # Catch quota or API errors
+        print("OpenAI API Error:", e)
+        return "Sorry, Ocean AI can't answer that right now. Try again later!"
