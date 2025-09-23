@@ -1,7 +1,8 @@
+// src/MapView.js
 import React from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
-import Routing from "./Routing"; // Routing component
+import Routing from "./Routing"; // Your routing component
 import "leaflet/dist/leaflet.css";
 import "leaflet-routing-machine/dist/leaflet-routing-machine.css";
 

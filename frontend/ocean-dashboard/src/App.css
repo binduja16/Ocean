@@ -12,7 +12,31 @@
     animation: App-logo-spin infinite 20s linear;
   }
 }
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
+body {
+  font-family: 'Arial', sans-serif;
+  background-color: #f5f5f5;
+}
+
+button:hover {
+  background-color: #2980b9;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+}
 .App-header {
   background-color: #282c34;
   min-height: 100vh;
