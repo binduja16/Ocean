@@ -9,16 +9,18 @@ OPENWEATHER_API_KEY = os.getenv("OPENWEATHER_API_KEY")
 
 router = APIRouter()
 
-# -------------------------------
-# Helper: Snap coordinates to sea
-# -------------------------------
-def snap_to_sea(lat, lon, max_offset=1.0, step=0.1):
-    """Shift coordinates slightly until marine SST data is found."""
+def snap_to_sea(lat, lon, max_offset=1.0, step=0.05):
+    """
+    Snap given lat/lon to nearest sea coordinate by checking marine SST data.
+    Uses step size for finer location increments.
+    Returns snapped coordinates or original if sea not found.
+    """
     offsets = [
         (i, j)
         for i in range(-int(max_offset / step), int(max_offset / step) + 1)
         for j in range(-int(max_offset / step), int(max_offset / step) + 1)
     ]
+
     for dx, dy in offsets:
         check_lat = lat + dx * step
         check_lon = lon + dy * step
@@ -34,14 +36,11 @@ def snap_to_sea(lat, lon, max_offset=1.0, step=0.1):
                 return check_lat, check_lon
         except Exception:
             continue
-    return lat, lon  # fallback if no sea found
+    return lat, lon
 
-# -------------------------------
-# Endpoint: Heatmap
-# -------------------------------
 @router.get("/heatmap")
 def get_heatmap(city: str = Query(...)):
-    # 1. Resolve city → coordinates
+    # Get city coordinates
     try:
         url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={OPENWEATHER_API_KEY}&units=metric"
         res = requests.get(url, timeout=5).json()
@@ -52,25 +51,19 @@ def get_heatmap(city: str = Query(...)):
     except Exception:
         lat, lon = 20.5937, 78.9629
 
-    # 2. Snap to nearest sea point
+    # Snap city center to nearest sea
     lat, lon = snap_to_sea(lat, lon)
 
-    # 3. Generate random heatmap points near sea
+    # Generate and snap 8 random heatmap points near city center
     points = []
     for _ in range(8):
         offset_lat = lat + random.uniform(-0.3, 0.3)
         offset_lon = lon + random.uniform(-0.3, 0.3)
+        # Snap each random point to sea to ensure it's over water
+        snapped_lat, snapped_lon = snap_to_sea(offset_lat, offset_lon)
         intensity = random.uniform(0.5, 1.0)
-        points.append([offset_lat, offset_lon, intensity])
+        points.append([snapped_lat, snapped_lon, intensity])
 
-    # 4. Example markers
-    markers = [
-    {"lat": lat, "lon": lon, "name": f"{city.title()} Sea Location"}
-]
+    markers = [{"lat": lat, "lon": lon, "name": f"{city.title()} Sea Location"}]
 
-
-    return {
-        "center": [lat, lon],
-        "points": points,
-        "markers": markers,
-    }
+    return {"center": [lat, lon], "points": points, "markers": markers}

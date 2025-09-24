@@ -1,4 +1,3 @@
-// src/ResearcherDashboard.js
 import React, { useState } from "react";
 import {
   LineChart,
@@ -21,12 +20,9 @@ export default function ResearcherDashboard() {
   const [diversity, setDiversity] = useState(null);
   const [trends, setTrends] = useState([]);
 
-  // ✅ Fetch species dynamically from backend
   const fetchSpecies = async (lat, lon) => {
     try {
-      const res = await fetch(
-        `http://127.0.0.1:8000/api/biodiversity/species?lat=${lat}&lon=${lon}`
-      );
+      const res = await fetch(`http://127.0.0.1:8000/api/biodiversity/species?lat=${lat}&lon=${lon}`);
       const data = await res.json();
       setSpecies(data.species || []);
     } catch (err) {
@@ -35,12 +31,9 @@ export default function ResearcherDashboard() {
     }
   };
 
-  // ✅ Fetch diversity dynamically from backend
   const fetchDiversity = async (lat, lon) => {
     try {
-      const res = await fetch(
-        `http://127.0.0.1:8000/api/biodiversity/diversity?lat=${lat}&lon=${lon}`
-      );
+      const res = await fetch(`http://127.0.0.1:8000/api/biodiversity/diversity?lat=${lat}&lon=${lon}`);
       const data = await res.json();
       setDiversity(data);
     } catch (err) {
@@ -49,7 +42,6 @@ export default function ResearcherDashboard() {
     }
   };
 
-  // ✅ Mock trends until backend supports it
   const fetchTrends = () => {
     const mockTrends = [
       { year: 2015, richness: 5, shannon: 2.5 },
@@ -67,15 +59,14 @@ export default function ResearcherDashboard() {
     setTrends(mockTrends);
   };
 
-  // ✅ Handle button click (decide which API to call)
   const handleView = async (selectedView) => {
     setView(selectedView);
 
     if (!submittedCity) return;
 
-    // For now, hardcode Goa coords. Replace later with geocoding API
-    const lat = 15.3005;
-    const lon = 74.0855;
+    // For now, hardcoding coords for Mumbai - replace with geocoding if needed
+    const lat = 19.076;
+    const lon = 72.8777;
 
     if (selectedView === "species") {
       await fetchSpecies(lat, lon);
@@ -84,12 +75,11 @@ export default function ResearcherDashboard() {
     } else if (selectedView === "trends") {
       fetchTrends();
     }
-    // ❌ no need to handle "heatmap" here
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (city.trim() === "") return;
+    if (!city.trim()) return;
     setSubmittedCity(city.trim());
     setView(null);
   };
@@ -99,11 +89,10 @@ export default function ResearcherDashboard() {
       <h2>🔬 Researcher Dashboard</h2>
       <p>Explore marine biodiversity by entering a city</p>
 
-      {/* City input */}
       <form onSubmit={handleSubmit} style={{ marginBottom: "20px" }}>
         <input
           type="text"
-          placeholder="Enter city name (e.g., Goa)"
+          placeholder="Enter city name (e.g., Mumbai)"
           value={city}
           onChange={(e) => setCity(e.target.value)}
           style={{ padding: "8px", marginRight: "10px" }}
@@ -117,35 +106,21 @@ export default function ResearcherDashboard() {
         <>
           <h3>Location: {submittedCity}</h3>
 
-          {/* Buttons */}
           <div style={{ marginBottom: "20px" }}>
-            <button
-              onClick={() => handleView("species")}
-              style={{ marginRight: "10px", padding: "8px" }}
-            >
+            <button onClick={() => handleView("species")} style={{ marginRight: "10px", padding: "8px" }}>
               🐠 Species
             </button>
-            <button
-              onClick={() => handleView("diversity")}
-              style={{ marginRight: "10px", padding: "8px" }}
-            >
+            <button onClick={() => handleView("diversity")} style={{ marginRight: "10px", padding: "8px" }}>
               📊 Diversity Index
             </button>
-            <button
-              onClick={() => handleView("trends")}
-              style={{ marginRight: "10px", padding: "8px" }}
-            >
+            <button onClick={() => handleView("trends")} style={{ marginRight: "10px", padding: "8px" }}>
               📈 Trends
             </button>
-            <button
-              onClick={() => setView("heatmap")}
-              style={{ padding: "8px" }}
-            >
+            <button onClick={() => setView("heatmap")} style={{ padding: "8px" }}>
               🌍 Heatmap
             </button>
           </div>
 
-          {/* Views */}
           {view === "species" && (
             <div>
               <h3>Available Species</h3>
@@ -183,18 +158,8 @@ export default function ResearcherDashboard() {
                   <YAxis />
                   <Tooltip />
                   <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="richness"
-                    stroke="#8884d8"
-                    name="Species Richness"
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="shannon"
-                    stroke="#82ca9d"
-                    name="Shannon Index"
-                  />
+                  <Line type="monotone" dataKey="richness" stroke="#8884d8" name="Species Richness" />
+                  <Line type="monotone" dataKey="shannon" stroke="#82ca9d" name="Shannon Index" />
                 </LineChart>
               </ResponsiveContainer>
             </div>

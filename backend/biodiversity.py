@@ -31,7 +31,7 @@ def _set_cache(key: str, value: Any):
 
 
 # -------------------------------
-# Small fallback species DB (used for simulation)
+# Small fallback species DB (for simulation)
 # -------------------------------
 species_db = [
     "Thunnus albacares (Yellowfin Tuna)",
@@ -46,7 +46,7 @@ species_db = [
 
 
 # -------------------------------
-# Helper: simulate biodiversity (fallback)
+# Helper: simulate biodiversity
 # -------------------------------
 def simulate_biodiversity(error: str = None) -> Dict[str, Any]:
     richness = random.randint(5, min(20, len(species_db)))
@@ -64,22 +64,16 @@ def simulate_biodiversity(error: str = None) -> Dict[str, Any]:
 # Core: fetch biodiversity metrics from OBIS (or fallback)
 # -------------------------------
 def fetch_biodiversity_metrics(lat: float, lon: float, radius: float = 50) -> Dict[str, Any]:
-    """
-    Returns: { richness, shannon_index, species: [names], note? }
-    Caches results for CACHE_TTL seconds.
-    """
     cache_key = f"biodiv_{round(lat,6)}_{round(lon,6)}_{int(radius)}"
     cached = _get_cache(cache_key)
     if cached:
         return cached
 
     try:
-        # Convert radius (km) to degrees (approx 1 deg lat ~ 111 km)
         delta = radius / 111.0
         lon1, lon2 = lon - delta, lon + delta
         lat1, lat2 = lat - delta, lat + delta
 
-        # Build POLYGON for OBIS
         polygon = f"POLYGON(({lon1} {lat1}, {lon2} {lat1}, {lon2} {lat2}, {lon1} {lat2}, {lon1} {lat1}))"
 
         url = "https://api.obis.org/v3/occurrence"
@@ -164,33 +158,48 @@ def get_diversity(lat: float = Query(...), lon: float = Query(...)):
 # -------------------------------
 @router.get("/heatmap")
 def get_heatmap(city: str = Query(...)):
-    """
-    Return heatmap points for any given city in India (or worldwide).
-    """
     try:
         geocode_url = f"https://nominatim.openstreetmap.org/search?city={city}&format=json&limit=1"
-        res = requests.get(geocode_url, timeout=10).json()
+        headers = {"User-Agent": "OceanAI/1.0 (contact@example.com)"}  # ✅ required by Nominatim
+        res = requests.get(geocode_url, headers=headers, timeout=10)
 
-        if not res:
-            return {"error": f"City '{city}' not found"}
+        try:
+            res_json = res.json()
+        except Exception:
+            return {
+                "center": [20.5937, 78.9629],
+                "points": [],
+                "markers": [],
+                "error": "Invalid response from geocoding service",
+            }
 
-        lat, lon = float(res[0]["lat"]), float(res[0]["lon"])
+        if not res_json:
+            return {"center": [20.5937, 78.9629], "points": [], "markers": []}
+
+        lat, lon = float(res_json[0]["lat"]), float(res_json[0]["lon"])
 
         points = []
-        for _ in range(8):  # generate 8 points
-            offset_lat = lat + random.uniform(-0.3, 0.3)  # ~30 km radius
+        markers = []
+        for i in range(8):
+            offset_lat = lat + random.uniform(-0.3, 0.3)
             offset_lon = lon + random.uniform(-0.3, 0.3)
             richness = random.randint(20, 150)
-            points.append({"lat": offset_lat, "lon": offset_lon, "richness": richness})
+            points.append([offset_lat, offset_lon, richness / 150])  # [lat,lon,intensity]
+            markers.append({"lat": offset_lat, "lon": offset_lon, "name": f"Spot {i+1}"})
 
-        return points
+        return {"center": [lat, lon], "points": points, "markers": markers}
 
     except Exception as e:
-        return {"error": str(e)}
+        return {
+            "center": [20.5937, 78.9629],
+            "points": [],
+            "markers": [],
+            "error": str(e),
+        }
 
 
 # -------------------------------
-# API: Biodiversity Trends (2015–2025 simulated)
+# API: Biodiversity Trends (simulated)
 # -------------------------------
 @router.get("/trends")
 def get_trends(lat: float = Query(...), lon: float = Query(...)):

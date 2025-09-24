@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-route
 import FishermanDashboard from './FishermanDashboard';
 import ResearcherDashboard from './ResearcherDashboard';
 import './App.css';
+import "leaflet/dist/leaflet.css";
+import "leaflet-routing-machine/dist/leaflet-routing-machine.css";
 
 function HomePage() {
   const navigate = useNavigate();

@@ -2,20 +2,21 @@ import React, { useState, useEffect } from "react";
 import MapView from "./MapView";
 import Chatbot from "./Chatbot";
 
-function FishermanDashboard() {
+export default function FishermanDashboard() {
   const [location, setLocation] = useState("");
   const [fishData, setFishData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [userLocation, setUserLocation] = useState(null);
 
-  // Get user's current location
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setUserLocation([position.coords.latitude, position.coords.longitude]);
-        },
-        (err) => console.error(err)
+        (position) =>
+          setUserLocation([
+            position.coords.latitude,
+            position.coords.longitude,
+          ]),
+        (err) => console.error("Geolocation error:", err)
       );
     }
   }, []);
@@ -41,7 +42,6 @@ function FishermanDashboard() {
       <h1>🌊 Ocean AI Dashboard</h1>
       <p>Get real-time fishing advice based on your location!</p>
 
-      {/* Search Bar */}
       <div style={{ marginBottom: "20px" }}>
         <input
           type="text"
@@ -55,10 +55,8 @@ function FishermanDashboard() {
         </button>
       </div>
 
-      {/* Loading Indicator */}
       {loading && <p>Loading data...</p>}
 
-      {/* Fishing Info */}
       {fishData && (
         <div
           style={{
@@ -73,43 +71,23 @@ function FishermanDashboard() {
             <p style={{ color: "red" }}>Error: {fishData.error}</p>
           ) : (
             <>
-              <h2>Fishing Info for {fishData.location}</h2>
-              <ul style={{ listStyle: "none", padding: 0, lineHeight: "1.8em" }}>
-                <li>
-                  <strong>Weather:</strong> {fishData.weather}
-                </li>
-                <li>
-                  <strong>SST (Sea Surface Temp):</strong> {fishData.sst}
-                </li>
-                <li>
-                  <strong>AI Advice:</strong>{" "}
-                  <span style={{ color: fishData.advice.includes("Good") ? "green" : "red" }}>
-                    {fishData.advice}
-                  </span>
-                </li>
-                <li>
-                  <strong>Route:</strong>
-                  {userLocation ? (
-                    <MapView
-                      lat={fishData.lat}
-                      lon={fishData.lon}
-                      advice={fishData.advice}
-                      userLocation={userLocation}
-                    />
-                  ) : (
-                    <p>Allow location to see directions on map</p>
-                  )}
-                </li>
-              </ul>
+              <p><b>Location:</b> {fishData.location}</p>
+              <p><b>Weather:</b> {fishData.weather}</p>
+              <p><b>SST:</b> {fishData.sst} °C</p>
+              <p><b>Advice:</b> {fishData.advice}</p>
+
+              {/* ✅ Map with route */}
+              <MapView
+                userLocation={userLocation}
+                lat={fishData.lat}
+                lon={fishData.lon}
+              />
             </>
           )}
         </div>
       )}
 
-      {/* Chatbot */}
       <Chatbot />
     </div>
   );
 }
-
-export default FishermanDashboard;

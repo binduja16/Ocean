@@ -1,49 +1,48 @@
-// src/MapView.js
 import React from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import L from "leaflet";
-import Routing from "./Routing"; // Your routing component
 import "leaflet/dist/leaflet.css";
-import "leaflet-routing-machine/dist/leaflet-routing-machine.css";
+import RoutingMachine from "./Routing";
+import L from "leaflet";
+import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 
-// Fix default marker icons
+// Fix default icons for Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl: require("leaflet/dist/images/marker-icon-2x.png"),
-  iconUrl: require("leaflet/dist/images/marker-icon.png"),
-  shadowUrl: require("leaflet/dist/images/marker-shadow.png"),
+  iconRetinaUrl: markerIcon2x,
+  iconUrl: markerIcon,
+  shadowUrl: markerShadow,
 });
 
-export default function MapView({ lat, lon, advice, userLocation }) {
-  if (!lat || !lon) return null;
+export default function MapView({ userLocation, lat, lon }) {
+  const start = userLocation || [12.9716, 77.5946]; // Default Bangalore
+  const end = lat && lon ? [lat, lon] : null;
 
   return (
-    <div style={{ height: "500px", width: "100%", marginTop: "20px" }}>
-      <MapContainer
-        center={userLocation || [lat, lon]}
-        zoom={10}
-        style={{ height: "100%", width: "100%" }}
-      >
-        <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution="&copy; OpenStreetMap contributors"
-        />
+    <MapContainer
+      center={start}
+      zoom={7}
+      style={{ height: "400px", width: "100%" }}
+    >
+      <TileLayer
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution='&copy; OpenStreetMap contributors'
+      />
 
-        {/* Destination marker */}
-        <Marker position={[lat, lon]}>
-          <Popup>{advice || "Destination"}</Popup>
+      {userLocation && (
+        <Marker position={userLocation}>
+          <Popup>📍 You are here</Popup>
         </Marker>
+      )}
 
-        {/* User location marker */}
-        {userLocation && (
-          <Marker position={userLocation}>
-            <Popup>Your Location</Popup>
-          </Marker>
-        )}
+      {end && (
+        <Marker position={end}>
+          <Popup>🎣 Fishing Spot</Popup>
+        </Marker>
+      )}
 
-        {/* Routing from user to destination */}
-        {userLocation && <Routing start={userLocation} end={[lat, lon]} />}
-      </MapContainer>
-    </div>
+      {end && <RoutingMachine start={start} end={end} />}
+    </MapContainer>
   );
 }
